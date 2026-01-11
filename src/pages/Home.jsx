@@ -26,26 +26,33 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="w-full h-screen overflow-hidden relative">
-      {/* Slides container */}
-      <div
-        className="flex h-full transition-transform duration-1000"
-        style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-      >
-        {slides.map((slide, index) => (
-          <div key={index} className="w-full h-full flex-shrink-0 relative">
-            {/* Image */}
-            <img
-              src={slide.img}
-              alt={`Slide ${index + 1}`}
-              className="w-full h-full object-cover"
-            />
-            {/* Text overlay at bottom */}
-            <div className="absolute bottom-0 w-full bg-black/60 text-white py-6 px-4 text-center text-lg md:text-xl font-semibold">
-              {slide.text}
+    <div className="w-full bg-black text-white">
+      <div className="relative w-full max-w-7xl mx-auto px-4 py-20">
+
+        {/* Slides container */}
+        <div
+          className="flex transition-transform duration-1000"
+          style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+        >
+          {slides.map((slide, index) => (
+            <div key={index} className="w-full flex-shrink-0 relative">
+
+              {/* Image */}
+              <img
+                src={slide.img}
+                alt={`Slide ${index + 1}`}
+                className="w-full h-auto md:h-[80vh] object-cover rounded-md shadow-lg"
+              />
+
+              {/* Text overlay */}
+              <div className="absolute bottom-0 w-full bg-black/60 text-white py-6 px-4 text-center text-base md:text-lg font-semibold rounded-b-md">
+                {slide.text}
+              </div>
+
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
+
       </div>
     </div>
   );
