@@ -454,6 +454,70 @@
   text-decoration: none;
 }
 
+.experience {
+  display: grid;
+  grid-template-columns: 60px 1fr auto;
+  align-items: center;
+  gap: 26px;
+  padding-top: 43px;
+  padding-bottom: 43px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.experience-icon {
+  display: grid;
+  width: 54px;
+  height: 54px;
+  place-items: center;
+  border: 1px solid rgba(112, 240, 192, 0.32);
+  color: var(--accent);
+  font-size: 19px;
+}
+
+.experience-copy .eyebrow {
+  margin-bottom: 12px;
+}
+
+.experience-copy h2 {
+  margin: 0 0 12px;
+  font-family: var(--font-display);
+  font-size: clamp(21px, 2.7vw, 30px);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+}
+
+.experience-role {
+  margin: 0 0 8px;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.experience-role span {
+  padding: 0 5px;
+  color: #83949e;
+}
+
+.experience-description {
+  max-width: 700px;
+  margin: 0;
+  color: #92a2ac;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.experience-stamp {
+  padding: 12px;
+  border: 1px solid var(--line);
+  color: #86969f;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1.6;
+  text-align: center;
+}
+
 .services {
   padding-top: 100px;
   padding-bottom: 105px;
@@ -571,11 +635,105 @@
 }
 
 .skill-list span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 7px 10px;
   border-radius: 2px;
   color: #c6d1d6;
   background: rgba(255, 255, 255, 0.045);
   font-size: 10px;
+}
+
+.skill-list svg {
+  color: var(--accent);
+  font-size: 9px;
+}
+
+.process {
+  padding-top: 87px;
+  padding-bottom: 87px;
+  border-top: 1px solid var(--line);
+}
+
+.process .section-heading-row {
+  margin-bottom: 32px;
+}
+
+.process-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.process-step {
+  min-height: 170px;
+  padding: 20px 19px 20px 0;
+}
+
+.process-step + .process-step {
+  padding-left: 19px;
+  border-left: 1px solid var(--line);
+}
+
+.process-number {
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: 11px;
+}
+
+.process-step h3,
+.principle h3 {
+  margin: 16px 0 8px;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.process-step p,
+.principle p {
+  margin: 0;
+  color: #91a1ab;
+  font-size: 11px;
+  line-height: 1.75;
+}
+
+.project-ideas {
+  display: grid;
+  grid-template-columns: 38px 1fr auto;
+  align-items: center;
+  gap: 17px;
+  margin-top: 22px;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.project-ideas-icon {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 1px solid rgba(112, 240, 192, 0.25);
+  color: var(--accent);
+}
+
+.project-ideas p {
+  margin: 0;
+  color: #9cabb4;
+  font-size: 11px;
+  line-height: 1.75;
+}
+
+.project-ideas strong {
+  color: var(--ink);
+}
+
+.project-ideas .text-link {
+  white-space: nowrap;
 }
 
 .education {
@@ -602,6 +760,32 @@
 
 .education-copy .eyebrow {
   margin-bottom: 12px;
+}
+
+.principles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+  padding-top: 55px;
+  padding-bottom: 8px;
+}
+
+.principle {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+}
+
+.principle > svg {
+  flex: 0 0 auto;
+  margin-top: 17px;
+  color: var(--accent);
+  font-size: 15px;
+}
+
+.principle h3 {
+  margin-top: 13px;
+  font-size: 13px;
 }
 
 .education-copy h2 {
@@ -751,6 +935,14 @@
     gap: 20px;
   }
 
+  .service-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .service-card:last-child {
+    grid-column: 1 / -1;
+  }
+
   .contact {
     grid-template-columns: 1fr;
     gap: 28px;
@@ -764,26 +956,7 @@
   }
 }
 
-@media (max-width: 680px) {
-  .site-header,
-  .hero,
-  .section-wrap,
-  .site-footer {
-    width: min(100% - 40px, 540px);
-  }
-
-  .site-header {
-    height: 74px;
-  }
-
-  .brand-mark {
-    font-size: 25px;
-  }
-
-  .brand-name {
-    font-size: 10px;
-  }
-
+@media (max-width: 800px) {
   .menu-toggle {
     display: inline-flex;
   }
@@ -814,6 +987,48 @@
   .primary-navigation .nav-cta {
     justify-content: center;
     margin-top: 13px;
+  }
+
+  .hero {
+    min-height: auto;
+    grid-template-columns: 1fr;
+    gap: 40px;
+    padding-top: 65px;
+    padding-bottom: 77px;
+  }
+
+  .hero-copy {
+    max-width: 640px;
+  }
+
+  .hero-visual {
+    width: min(100% - 22px, 460px);
+    justify-self: center;
+  }
+
+  .photo-frame {
+    height: clamp(370px, 72vw, 470px);
+  }
+}
+
+@media (max-width: 680px) {
+  .site-header,
+  .hero,
+  .section-wrap,
+  .site-footer {
+    width: min(100% - 40px, 540px);
+  }
+
+  .site-header {
+    height: 74px;
+  }
+
+  .brand-mark {
+    font-size: 25px;
+  }
+
+  .brand-name {
+    font-size: 10px;
   }
 
   .hero {
@@ -888,6 +1103,31 @@
     grid-template-columns: 1fr;
   }
 
+  .service-card:last-child {
+    grid-column: auto;
+  }
+
+  .experience {
+    grid-template-columns: 44px 1fr;
+    gap: 14px;
+    padding-top: 31px;
+    padding-bottom: 31px;
+  }
+
+  .experience-icon {
+    width: 42px;
+    height: 42px;
+    font-size: 16px;
+  }
+
+  .experience-copy h2 {
+    font-size: 20px;
+  }
+
+  .experience-stamp {
+    display: none;
+  }
+
   .service-card {
     min-height: auto;
   }
@@ -899,6 +1139,58 @@
   .skill-strip {
     grid-template-columns: 1fr;
     gap: 13px;
+  }
+
+  .process {
+    padding-top: 70px;
+    padding-bottom: 70px;
+  }
+
+  .process-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .process-step {
+    min-height: 150px;
+    padding: 17px 13px 17px 0;
+  }
+
+  .process-step + .process-step {
+    padding-left: 13px;
+  }
+
+  .process-step:nth-child(3) {
+    padding-left: 0;
+    border-top: 1px solid var(--line);
+    border-left: 0;
+  }
+
+  .process-step:nth-child(4) {
+    border-top: 1px solid var(--line);
+  }
+
+  .project-ideas {
+    grid-template-columns: 34px 1fr;
+    gap: 12px;
+    padding: 16px 13px;
+  }
+
+  .project-ideas .text-link {
+    grid-column: 2;
+  }
+
+  .principles {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding-top: 32px;
+  }
+
+  .principle > svg {
+    margin-top: 14px;
+  }
+
+  .principle h3 {
+    margin-top: 11px;
   }
 
   .education {
