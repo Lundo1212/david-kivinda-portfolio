@@ -1,349 +1,506 @@
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  FaArrowDown,
-  FaArrowRight,
-  FaCode,
-  FaEnvelope,
-  FaGraduationCap,
-  FaCheck,
-  FaMobileAlt,
-  FaRegLightbulb,
-  FaLaptopCode,
-  FaLock,
-  FaMapMarkerAlt,
-  FaBars,
-  FaTimes,
-  FaWhatsapp,
+  FaChevronRight,
+  FaGamepad,
+  FaHeadphones,
+  FaMusic,
+  FaPause,
+  FaPlay,
+  FaPlus,
+  FaRedo,
+  FaTrophy,
+  FaUserFriends,
+  FaVolumeUp,
+  FaUsers,
 } from "react-icons/fa";
 import "./App.css";
 
-const email = "kivindadavid8@gmail.com";
-const projectMessage = encodeURIComponent(
-  "Hi David, I'd like to talk about bringing my business online."
-);
-const emailLink = `mailto:${email}?subject=Let's%20build%20something%20great`;
-const projectEmailLink = `mailto:${email}?subject=Bring%20my%20business%20online&body=${projectMessage}`;
-
-const skills = [
-  "Web development",
-  "React",
-  "JavaScript",
-  "HTML & CSS",
-  "Responsive design",
-  "Python",
-  "Cybersecurity",
-  "Data analysis",
-];
-
-const services = [
+const sampleMusic = [
   {
-    number: "01",
-    icon: <FaLaptopCode aria-hidden="true" />,
-    title: "Web development",
-    description:
-      "From a clear, professional landing page to a multi-section business site, create a useful first impression on every screen.",
-    tags: ["Business websites", "React", "Mobile-first design"],
+    id: 1,
+    title: "Neon Drive",
+    artist: "Pulse Studio",
+    url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+    color: "#70f0c0",
   },
   {
-    number: "02",
-    icon: <FaCode aria-hidden="true" />,
-    title: "Software & automation",
-    description:
-      "Purposeful applications, data dashboards, and automation that help make repetitive work simpler and information easier to use.",
-    tags: ["Python", "Data dashboards", "Testing"],
+    id: 2,
+    title: "Midnight Quiz",
+    artist: "Signal Room",
+    url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+    color: "#7cc7ff",
   },
   {
-    number: "03",
-    icon: <FaLock aria-hidden="true" />,
-    title: "IT & security",
-    description:
-      "IT support and security-conscious development informed by hands-on experience with data protection and network monitoring.",
-    tags: ["Cybersecurity", "Data protection", "Networking"],
+    id: 3,
+    title: "Victory Loop",
+    artist: "Champion Beats",
+    url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+    color: "#f3b86c",
   },
 ];
 
-const process = [
+const quizBank = [
   {
-    number: "01",
-    title: "Understand",
-    description: "We start with your business, customers, goals, and the problem to solve.",
+    question: "Which planet is known as the Red Planet?",
+    options: ["Mars", "Venus", "Jupiter", "Mercury"],
+    answer: "Mars",
+    fact: "Mars looks red because of iron oxide dust covering the surface.",
   },
   {
-    number: "02",
-    title: "Plan",
-    description: "Agree on the essentials, page structure, and the right approach before building.",
+    question: "What is the capital city of Japan?",
+    options: ["Kyoto", "Nagoya", "Tokyo", "Osaka"],
+    answer: "Tokyo",
+    fact: "Tokyo is Japan's political and economic capital.",
   },
   {
-    number: "03",
-    title: "Build",
-    description: "Develop a responsive solution with clear communication as the work takes shape.",
+    question: "Which language is primarily used to style web pages?",
+    options: ["Python", "CSS", "C++", "SQL"],
+    answer: "CSS",
+    fact: "CSS controls colors, spacing, layout, and visual design.",
   },
   {
-    number: "04",
-    title: "Refine",
-    description: "Review the details together and polish the result for launch.",
+    question: "Who wrote the play 'Romeo and Juliet'?",
+    options: ["Charles Dickens", "William Shakespeare", "Jane Austen", "Mark Twain"],
+    answer: "William Shakespeare",
+    fact: "Shakespeare wrote the famous tragedy in the late 1500s.",
+  },
+  {
+    question: "What do plants need to make food in photosynthesis?",
+    options: ["Moonlight", "Oxygen", "Sunlight", "Sand"],
+    answer: "Sunlight",
+    fact: "Sunlight powers the process that converts water and carbon dioxide into sugar.",
   },
 ];
 
-const navigation = [
-  ["About", "#about"],
-  ["Skills", "#skills"],
-  ["Education", "#education"],
-  ["Contact", "#contact"],
-];
+const buildPlayers = (mode) =>
+  mode === "solo"
+    ? [{ id: 1, name: "Player 1", score: 0 }]
+    : [
+        { id: 1, name: "Host", score: 0 },
+        { id: 2, name: "Player 2", score: 0 },
+      ];
 
 export default function App() {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [page, setPage] = useState("game");
+  const [gameMode, setGameMode] = useState("solo");
+  const [players, setPlayers] = useState(buildPlayers("solo"));
+  const [musicList, setMusicList] = useState(sampleMusic);
+  const [trackIndex, setTrackIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [questionIndex, setQuestionIndex] = useState(0);
+  const [answers, setAnswers] = useState({});
+  const [showAnswer, setShowAnswer] = useState(false);
+  const [roundScored, setRoundScored] = useState(false);
+  const [uploadForm, setUploadForm] = useState({ title: "", artist: "", url: "" });
+  const [activePlayerId, setActivePlayerId] = useState(1);
+  const audioRef = useRef(null);
 
-  const closeMenu = () => setMenuOpen(false);
+  const currentQuestion = quizBank[questionIndex];
+  const activeTrack = musicList[trackIndex % Math.max(musicList.length, 1)] || musicList[0];
+
+  useEffect(() => {
+    if (players.length > 0 && !players.some((player) => player.id === activePlayerId)) {
+      setActivePlayerId(players[0].id);
+    }
+  }, [activePlayerId, players]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !activeTrack) return;
+
+    audio.src = activeTrack.url;
+    audio.load();
+
+    if (isPlaying) {
+      audio.play().catch(() => setIsPlaying(false));
+    } else {
+      audio.pause();
+    }
+  }, [activeTrack, isPlaying]);
+
+  const scoreLeader = useMemo(
+    () => [...players].sort((a, b) => b.score - a.score)[0],
+    [players]
+  );
+
+  const updateMode = (mode) => {
+    const nextPlayers = buildPlayers(mode);
+    setGameMode(mode);
+    setPlayers(nextPlayers);
+    setActivePlayerId(nextPlayers[0]?.id ?? 1);
+    setQuestionIndex(0);
+    setAnswers({});
+    setShowAnswer(false);
+    setRoundScored(false);
+  };
+
+  const addPlayer = () => {
+    setPlayers((current) => {
+      const nextPlayer = { id: Date.now(), name: `Player ${current.length + 1}`, score: 0 };
+      setActivePlayerId(nextPlayer.id);
+      return [...current, nextPlayer];
+    });
+  };
+
+  const updatePlayerName = (playerId, name) => {
+    setPlayers((current) =>
+      current.map((player) =>
+        player.id === playerId ? { ...player, name: name || `Player ${player.id}` } : player
+      )
+    );
+  };
+
+  const chooseAnswer = (playerId, option) => {
+    setAnswers((current) => ({ ...current, [playerId]: option }));
+  };
+
+  const revealAnswer = () => {
+    if (roundScored) return;
+
+    setShowAnswer(true);
+    setRoundScored(true);
+    setPlayers((current) =>
+      current.map((player) => {
+        const selected = answers[player.id];
+        if (!selected) return player;
+        return {
+          ...player,
+          score: player.score + (selected === currentQuestion.answer ? 1 : 0),
+        };
+      })
+    );
+  };
+
+  const nextQuestion = () => {
+    setQuestionIndex((current) => (current + 1) % quizBank.length);
+    setAnswers({});
+    setShowAnswer(false);
+    setRoundScored(false);
+  };
+
+  const resetGame = () => {
+    setPlayers(buildPlayers(gameMode));
+    setActivePlayerId(buildPlayers(gameMode)[0]?.id ?? 1);
+    setQuestionIndex(0);
+    setAnswers({});
+    setShowAnswer(false);
+    setRoundScored(false);
+  };
+
+  const handleAudioToggle = () => {
+    if (!activeTrack) return;
+    setIsPlaying((current) => !current);
+  };
+
+  const nextTrack = () => {
+    if (musicList.length === 0) return;
+    setTrackIndex((current) => (current + 1) % musicList.length);
+  };
+
+  const handleUpload = (event) => {
+    event.preventDefault();
+    const title = uploadForm.title.trim() || "Untitled track";
+    const artist = uploadForm.artist.trim() || "Unknown artist";
+    const url = uploadForm.url.trim();
+
+    if (!url) return;
+
+    const newTrack = {
+      id: Date.now(),
+      title,
+      artist,
+      url,
+      color: ["#70f0c0", "#7cc7ff", "#f3b86c", "#d7a6ff"][Math.floor(Math.random() * 4)],
+    };
+
+    setMusicList((current) => [newTrack, ...current]);
+    setUploadForm({ title: "", artist: "", url: "" });
+    setTrackIndex(0);
+    setPage("game");
+    setIsPlaying(true);
+  };
 
   return (
-    <div className="portfolio">
-      <header className="site-header">
-        <a className="brand" href="#top" onClick={closeMenu} aria-label="David Kivinda, home">
-          <span className="brand-mark">DK<span>.</span></span>
-          <span className="brand-name">DAVID KIVINDA<span>IT & WEB DEVELOPMENT</span></span>
-        </a>
+    <div className="game-app-shell">
+      <header className="top-bar">
+        <div className="brand-block">
+          <span className="brand-icon">
+            <FaGamepad />
+          </span>
+          <div>
+            <p className="eyebrow-label">Smart quiz arena</p>
+            <h1>QPlay Studio</h1>
+          </div>
+        </div>
 
-        <button
-          className="menu-toggle"
-          type="button"
-          aria-label={menuOpen ? "Close navigation menu" : "Open navigation menu"}
-          aria-expanded={menuOpen}
-          aria-controls="primary-navigation"
-          onClick={() => setMenuOpen((open) => !open)}
-        >
-          {menuOpen ? <FaTimes /> : <FaBars />}
-        </button>
-
-        <nav
-          className={`primary-navigation${menuOpen ? " is-open" : ""}`}
-          id="primary-navigation"
-          aria-label="Main navigation"
-        >
-          {navigation.map(([label, href]) => (
-            <a key={href} href={href} onClick={closeMenu}>{label}</a>
-          ))}
-          <a className="nav-cta" href={projectEmailLink} onClick={closeMenu}>
-            Let&apos;s talk <FaArrowRight aria-hidden="true" />
-          </a>
+        <nav className="page-switcher" aria-label="App pages">
+          <button
+            type="button"
+            className={page === "game" ? "switch active" : "switch"}
+            onClick={() => setPage("game")}
+          >
+            <FaGamepad /> Game
+          </button>
+          <button
+            type="button"
+            className={page === "admin" ? "switch active" : "switch"}
+            onClick={() => setPage("admin")}
+          >
+            <FaMusic /> Music admin
+          </button>
         </nav>
       </header>
 
-      <main id="top">
-        <section className="hero" aria-labelledby="hero-title">
-          <div className="hero-copy">
-            <p className="eyebrow"><span className="status-dot" /> OPEN TO WEB PROJECTS</p>
-            <h1 id="hero-title">
-              Technology that works.
-              <span>Websites that move</span>
-              <span className="accent-line">business forward.</span>
-            </h1>
-            <p className="hero-description">
-              I&apos;m David Kivinda, an IT professional and web developer helping
-              businesses establish a confident online presence with thoughtful,
-              responsive websites and practical technology.
-            </p>
-            <div className="hero-actions">
-              <a className="button button-primary" href={projectEmailLink}>
-                Bring your business online <FaArrowRight aria-hidden="true" />
-              </a>
-              <a className="button button-quiet" href="#skills">
-                Explore my skills <FaArrowDown aria-hidden="true" />
-              </a>
-            </div>
-            <div className="hero-meta">
-              <span><FaMapMarkerAlt aria-hidden="true" /> Kenya</span>
-              <span className="meta-divider" aria-hidden="true" />
-              <span>IT professional · Web developer · JKUAT</span>
-            </div>
-          </div>
-
-          <div className="hero-visual">
-            <div className="photo-frame">
-              <img src="/profile.JPG" alt="David Kivinda" />
-              <div className="photo-label">
-                <span className="label-kicker">IT · WEB · PROBLEM SOLVING</span>
-                <span className="label-title">Ideas into impact<span>.</span></span>
+      {page === "game" ? (
+        <main className="game-layout">
+          <section className="arena-panel">
+            <div className="arena-header">
+              <div>
+                <p className="eyebrow-label">Game arena</p>
+                <h2>Question challenge</h2>
+              </div>
+              <div className="mode-toggle">
+                <button
+                  type="button"
+                  className={gameMode === "solo" ? "mode active" : "mode"}
+                  onClick={() => updateMode("solo")}
+                >
+                  Solo
+                </button>
+                <button
+                  type="button"
+                  className={gameMode === "team" ? "mode active" : "mode"}
+                  onClick={() => updateMode("team")}
+                >
+                  Team
+                </button>
               </div>
             </div>
-            <div className="visual-note">
-              <span className="note-symbol">&lt;/&gt;</span>
-              <span>Thoughtful by design.<br />Useful by nature.</span>
+
+            <div className="score-strip">
+              {players.map((player) => (
+                <button
+                  key={player.id}
+                  type="button"
+                  className={activePlayerId === player.id ? "player-card active" : "player-card"}
+                  onClick={() => setActivePlayerId(player.id)}
+                >
+                  <label>
+                    <span className="mini-label">Name</span>
+                    <input
+                      type="text"
+                      value={player.name}
+                      onChange={(event) => updatePlayerName(player.id, event.target.value)}
+                      aria-label={`${player.name} name`}
+                    />
+                  </label>
+                  <strong>{player.score}</strong>
+                </button>
+              ))}
+
+              {gameMode === "team" && (
+                <button type="button" className="inline-action" onClick={addPlayer}>
+                  <FaPlus /> Add player
+                </button>
+              )}
             </div>
-            <span className="visual-index">01 — 04</span>
-          </div>
-          <div className="hero-bottom"><span>SCROLL TO EXPLORE</span><span /></div>
-        </section>
 
-        <section className="intro section-wrap" id="about" aria-labelledby="about-title">
-          <div className="section-heading">
-            <p className="eyebrow">ABOUT DAVID <span>— 01</span></p>
-            <h2 id="about-title">Good technology should make life <span>and business easier.</span></h2>
-          </div>
-          <div className="intro-content">
-            <p>
-              I&apos;m an IT professional and web developer with an engineering
-              mindset and a genuine interest in how technology can help people
-              move forward. I enjoy taking a real need, making sense of the
-              technical details, and shaping them into a solution that feels
-              clear, dependable, and easy to use.
-            </p>
-            <p>
-              My interests span web development, software, data, and
-              cybersecurity. That breadth helps me think beyond the code: about
-              the people using a product, the information it handles, and the
-              business goals it should support.
-            </p>
-            <a className="text-link" href={emailLink}>
-              Let&apos;s talk about what you need <FaArrowRight aria-hidden="true" />
-            </a>
-          </div>
-        </section>
+            <div className="question-card">
+              <div className="question-header">
+                <span className="badge">Question {questionIndex + 1}</span>
+                <span className="badge subtle">
+                  {gameMode === "solo" ? "Solo mode" : `Answering: ${players.find((player) => player.id === activePlayerId)?.name ?? "Player"}`}
+                </span>
+              </div>
 
-        <section className="experience section-wrap" aria-labelledby="experience-title">
-          <div className="experience-icon"><FaLock aria-hidden="true" /></div>
-          <div className="experience-copy">
-            <p className="eyebrow">PROFESSIONAL EXPERIENCE <span>— 02</span></p>
-            <h2 id="experience-title">A security-minded approach to technology.</h2>
-            <p className="experience-role">Junior Security Expert <span>·</span> Huawei</p>
-            <p className="experience-description">
-              Experience focused on data protection, security analysis, and
-              monitoring. That foundation informs how I approach every
-              technology challenge: carefully, responsibly, and with attention
-              to the details that keep systems and information safer.
-            </p>
-          </div>
-          <span className="experience-stamp">SECURITY<br />MINDED</span>
-        </section>
+              <h3>{currentQuestion.question}</h3>
 
-        <section className="services section-wrap" id="skills" aria-labelledby="skills-title">
-          <div className="section-heading section-heading-row">
-            <div>
-              <p className="eyebrow">WHAT I BRING <span>— 03</span></p>
-              <h2 id="skills-title">Practical skills. <span>Purposeful work.</span></h2>
-            </div>
-            <p className="heading-aside">
-              From your first business website to a more efficient workflow,
-              thoughtful technology starts with the right problem.
-            </p>
-          </div>
-          <div className="service-grid">
-            {services.map((service) => (
-              <article className="service-card" key={service.number}>
-                <div className="service-topline">
-                  <span className="service-number">{service.number}</span>
-                  <span className="service-icon">{service.icon}</span>
+              <div className="answer-grid">
+                {currentQuestion.options.map((option) => {
+                  const isCorrect = option === currentQuestion.answer;
+                  const selectedByActivePlayer = answers[activePlayerId] === option;
+
+                  return (
+                    <button
+                      key={option}
+                      type="button"
+                      className={
+                        `option-button ${showAnswer && isCorrect ? "correct" : ""} ${
+                          showAnswer && selectedByActivePlayer && !isCorrect ? "wrong" : ""
+                        } ${selectedByActivePlayer ? "selected" : ""}`
+                      }
+                      onClick={() => chooseAnswer(activePlayerId, option)}
+                    >
+                      <span>{option}</span>
+                      {showAnswer && isCorrect && <strong>? correct</strong>}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="question-actions">
+                <button type="button" className="primary-button" onClick={revealAnswer}>
+                  Reveal answer
+                </button>
+                <button type="button" className="secondary-button" onClick={nextQuestion}>
+                  Next question <FaChevronRight />
+                </button>
+              </div>
+
+              {showAnswer && (
+                <div className="answer-panel">
+                  <h4>Host answer</h4>
+                  <p>
+                    <strong>{currentQuestion.answer}</strong> ? {currentQuestion.fact}
+                  </p>
                 </div>
-                <h3>{service.title}</h3>
-                <p>{service.description}</p>
-                <div className="tag-list">
-                  {service.tags.map((tag) => <span key={tag}>{tag}</span>)}
+              )}
+            </div>
+          </section>
+
+          <aside className="side-panel">
+            <div className="music-card">
+              <div className="music-header">
+                <span className="icon-wrap">
+                  <FaHeadphones />
+                </span>
+                <div>
+                  <p className="eyebrow-label">Now playing</p>
+                  <h3>{activeTrack?.title}</h3>
                 </div>
-              </article>
-            ))}
-          </div>
-          <div className="skill-strip">
-            <span className="strip-title">TECH I WORK WITH</span>
-            <div className="skill-list">
-              {skills.map((skill) => <span key={skill}><FaCheck aria-hidden="true" />{skill}</span>)}
+              </div>
+
+              <div className="cover-art" style={{ background: activeTrack?.color || "#70f0c0" }}>
+                <FaVolumeUp />
+              </div>
+
+              <div className="track-meta">
+                <strong>{activeTrack?.artist}</strong>
+                <span>{musicList.length} tracks in playlist</span>
+              </div>
+
+              <div className="controls-row">
+                <button type="button" className="control-button" onClick={handleAudioToggle}>
+                  {isPlaying ? <FaPause /> : <FaPlay />}
+                </button>
+                <button type="button" className="control-button" onClick={nextTrack}>
+                  <FaChevronRight />
+                </button>
+              </div>
+
+              <audio ref={audioRef} preload="auto" />
             </div>
-          </div>
-        </section>
 
-        <section className="process section-wrap" aria-labelledby="process-title">
-          <div className="section-heading section-heading-row">
-            <div>
-              <p className="eyebrow">HOW WE WORK <span>— 04</span></p>
-              <h2 id="process-title">Clear steps. <span>No guesswork.</span></h2>
+            <div className="leaderboard-card">
+              <div className="leaderboard-head">
+                <FaTrophy />
+                <h3>Leaderboard</h3>
+              </div>
+
+              {[...players]
+                .sort((a, b) => b.score - a.score)
+                .map((player, index) => (
+                  <div key={player.id} className="leader-row">
+                    <span>#{index + 1}</span>
+                    <strong>{player.name}</strong>
+                    <em>{player.score} pts</em>
+                  </div>
+                ))}
+
+              <div className="leader-footer">
+                <FaUserFriends />
+                <span>Leader: {scoreLeader?.name || "No players yet"}</span>
+              </div>
             </div>
-            <p className="heading-aside">
-              A straightforward, collaborative process keeps your priorities
-              at the center from the first conversation to the final details.
-            </p>
-          </div>
-          <div className="process-grid">
-            {process.map((step) => (
-              <article className="process-step" key={step.number}>
-                <span className="process-number">{step.number}</span>
-                <h3>{step.title}</h3>
-                <p>{step.description}</p>
-              </article>
-            ))}
-          </div>
-          <div className="project-ideas">
-            <span className="project-ideas-icon"><FaRegLightbulb aria-hidden="true" /></span>
-            <p><strong>Not sure where to start?</strong> We can talk through what your business needs, whether that&apos;s a simple website, a stronger online presence, or a small tool to make work easier.</p>
-            <a className="text-link" href={projectEmailLink}>Tell me your idea <FaArrowRight aria-hidden="true" /></a>
-          </div>
-        </section>
 
-        <section className="education section-wrap" id="education" aria-labelledby="education-title">
-          <div className="education-icon"><FaGraduationCap aria-hidden="true" /></div>
-          <div className="education-copy">
-            <p className="eyebrow">EDUCATION <span>— 05</span></p>
-            <h2 id="education-title">Built on engineering fundamentals.</h2>
-            <p className="degree">BSc in Computer Engineering</p>
-            <p className="school">Jomo Kenyatta University of Agriculture and Technology (JKUAT)</p>
-          </div>
-          <span className="education-mark">JKUAT</span>
-        </section>
+            <button type="button" className="reset-button" onClick={resetGame}>
+              <FaRedo /> Reset round
+            </button>
+          </aside>
+        </main>
+      ) : (
+        <main className="admin-page">
+          <section className="admin-panel">
+            <div className="admin-heading">
+              <div>
+                <p className="eyebrow-label">Music control desk</p>
+                <h2>Add more game music</h2>
+              </div>
+              <button type="button" className="secondary-button" onClick={() => setPage("game")}>
+                Return to game
+              </button>
+            </div>
 
-        <section className="principles section-wrap" aria-label="What you can expect">
-          <div className="principle">
-            <FaMobileAlt aria-hidden="true" />
-            <div><h3>Made for every screen</h3><p>Responsive layouts that work comfortably on phones, tablets, and desktops.</p></div>
-          </div>
-          <div className="principle">
-            <FaRegLightbulb aria-hidden="true" />
-            <div><h3>Built around your goals</h3><p>Clear content and useful features shaped around what your business needs.</p></div>
-          </div>
-          <div className="principle">
-            <FaLock aria-hidden="true" />
-            <div><h3>Thoughtful and dependable</h3><p>Careful attention to usability, detail, and responsible handling of technology.</p></div>
-          </div>
-        </section>
+            <form className="upload-form" onSubmit={handleUpload}>
+              <label>
+                Track title
+                <input
+                  type="text"
+                  value={uploadForm.title}
+                  onChange={(event) =>
+                    setUploadForm((current) => ({ ...current, title: event.target.value }))
+                  }
+                  placeholder="Champions anthem"
+                />
+              </label>
 
-        <section className="contact section-wrap" id="contact" aria-labelledby="contact-title">
-          <div className="contact-copy">
-            <p className="eyebrow">YOUR NEXT STEP <span>— 06</span></p>
-            <h2 id="contact-title">Let&apos;s take your business <span>online.</span></h2>
-            <p>
-              Tell me a little about your business, your idea, or the challenge
-              you&apos;re trying to solve. I&apos;ll get back to you so we can
-              explore the next step together.
-            </p>
-          </div>
-          <div className="contact-actions">
-            <a className="button button-light" href={projectEmailLink}>
-              <FaEnvelope aria-hidden="true" /> Email me about your project
-            </a>
-            <a
-              className="contact-email"
-              href={`mailto:${email}`}
-              aria-label={`Send an email to ${email}`}
-            >
-              {email}
-            </a>
-            <a
-              className="whatsapp-link"
-              href="https://wa.me/254797742966"
-              target="_blank"
-              rel="noreferrer"
-            >
-              <FaWhatsapp aria-hidden="true" /> Message me on WhatsApp
-              <FaArrowRight aria-hidden="true" />
-            </a>
-          </div>
-        </section>
-      </main>
+              <label>
+                Artist
+                <input
+                  type="text"
+                  value={uploadForm.artist}
+                  onChange={(event) =>
+                    setUploadForm((current) => ({ ...current, artist: event.target.value }))
+                  }
+                  placeholder="Studio crowd"
+                />
+              </label>
 
-      <footer className="site-footer">
-        <a className="footer-brand" href="#top">DK<span>.</span></a>
-        <p>Thoughtful technology. Practical impact.</p>
-        <a href={`mailto:${email}`}>{email}</a>
-        <span className="copyright">© {new Date().getFullYear()} David Kivinda</span>
-      </footer>
+              <label>
+                Music URL
+                <input
+                  type="url"
+                  value={uploadForm.url}
+                  onChange={(event) =>
+                    setUploadForm((current) => ({ ...current, url: event.target.value }))
+                  }
+                  placeholder="https://example.com/song.mp3"
+                />
+              </label>
+
+              <button type="submit" className="primary-button large">
+                Upload to playlist
+              </button>
+            </form>
+
+            <div className="track-library">
+              <div className="library-header">
+                <FaUsers />
+                <h3>Saved tracks</h3>
+              </div>
+
+              {musicList.map((track, index) => (
+                <button
+                  key={track.id}
+                  type="button"
+                  className={index === trackIndex ? "track-row active" : "track-row"}
+                  onClick={() => {
+                    setTrackIndex(index);
+                    setPage("game");
+                    setIsPlaying(true);
+                  }}
+                >
+                  <span className="track-dot" style={{ background: track.color }} />
+                  <div>
+                    <strong>{track.title}</strong>
+                    <small>{track.artist}</small>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </section>
+        </main>
+      )}
     </div>
   );
 }
